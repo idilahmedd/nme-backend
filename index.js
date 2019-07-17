@@ -1,46 +1,48 @@
 var express = require('express');
-var bodyParser = require('body-parser');
 var app = express();
 const Teacher = require('./models/teacher');
 const Student = require('./models/student');
 
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false }));
 
 // Mongoose stuff
 var mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/family-tree');
+mongoose.connect('mongodb://localhost/school');
+
+
 
 app.get('/', function (req, res) {
    res.send('Hi!');
 });
 //GET- get all teachers -working
 app.get('/teachers', (req, res) => {
-   Teacher.find({}, function (err, teachers) {
+   console.log("hello?");
+   Teacher.find({}, function(err, teachers) {
       if (err) res.json(err)
       res.json(teachers)
    })
 })
 //GET - get/show one teacher-working
-app.get('/teacher/:name', (req, res) => {
-   Teacher.findOne({ name: req.body.name }, function (err, teacher) {
+app.get('/teachers/:tid', (req, res) => {
+   Teacher.findById({_id: req.params.tid}, function (err, teacher) {
       if (err) res.json(err)
       res.json(teacher)
    })
 })
 //POST - create a teacher--working
-app.post('/teacher/new', (req, res) => {
+app.post('/teachers', (req, res) => {
    Teacher.create({
       //student: req.body.student,<< Dont know if that will get apended or should i add
       name: req.body.name,
       email: req.body.email
-   }, function (err, Teacher) {
-      res.json(Teacher)
+   }, function (err, teacher) {
+      res.json(teacher)
    })
 })
 //PUT /teachers/:id -- update a teacher
-app.put('/teachers/:id', (req, res) => {
+app.put('/teachers/:tid', (req, res) => {
    Teacher.findByIdAndUpdate(
-      req.params.id,
+      req.params.tid,
       {
          $set: {
             name: req.body.name,
@@ -53,9 +55,21 @@ app.put('/teachers/:id', (req, res) => {
          res.json(teacher)
       })
 })
+//GET- get all students associated with that teacher
+app.get("/teachers/:tid/students", (req, res) => {
+   Teacher.findById(req.params.tid).populate('students').exec((err, teacher) => {
+      res.status(200).json(teacher.students);
+   })
+})
+//GET -get one student associated with that teacher
+app.get("/teachers/:tid/students/:sid", (req, res) => {
+   Student.findById(req.params.sid, (err, student) => {
+      res.status(200).json(student);
+   })
+})
 //POST- add student to teacher???
-app.post("/teachers/:id/students", (req, res) => {
-   Teacher.findById(req.params.id, function (err, teacher) {
+app.post("/teachers/:tid/students", (req, res) => {
+   Teacher.findById(req.params.tid, function (err, teacher) {
       Student.create({
          name: req.body.name,
          email: req.body.email,
@@ -70,13 +84,25 @@ app.post("/teachers/:id/students", (req, res) => {
    })
 })
 //DELETE -delete one teacher
-app.delete("/teachers/:id", (req, res) => {
-   Teacher.findByIdAndRemove(req.params.id, function (err) {
+app.delete("/teachers/:tid", (req, res) => {
+   Teacher.findByIdAndRemove(req.params.tid, function (err) {
       if (err) res.json(err)
       res.json({ message: "DELETED!!" })
    })
+});
+//DElETE - delete one student from one tacher
+app.delete('/teachers/:tid/students/:sid', (req,res) => {
+   Teacher.findById(req.params.tid, (err, queen) => {
+      teacher.students.pull(req.params.id)
+      teacher.save(err => {
+         if (err) res.json(err)
+         Student.deleteOne({_id: req.params.sid}, err => {
+            if (err) res.json(err)
+            res.json(1);
+         })
+      })
+   })
 })
-
 
 //==========================================================================================//
 

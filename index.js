@@ -4,19 +4,19 @@ const Teacher = require('./models/teacher');
 const Student = require('./models/student');
 
 app.use(express.urlencoded({ extended: false }));
-
+app.use(express.json());
 // Mongoose stuff
 var mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/school');
 
 
 
-app.get('/', function (req, res) {
-   res.send('Hi!');
-});
+// app.get('/', function (req, res) {
+//    res.send('Hi!');
+// });
 //GET- get all teachers -working
 app.get('/teachers', (req, res) => {
-   console.log("hello?");
+   // console.log("hello?");
    Teacher.find({}, function(err, teachers) {
       if (err) res.json(err)
       res.json(teachers)
@@ -150,7 +150,7 @@ app.get("/delete", (req, res) => {
 })
 
 
-app.listen(3000);
+app.listen(3001);
 
 
 
